@@ -26,8 +26,8 @@ class SecurityConfig(
             .csrf { it.disable() } // API 서버라면 CSRF 비활성화
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .authorizeHttpRequests { it.anyRequest().permitAll() }
-            .cors(Customizer.withDefaults())
-            .addFilterBefore(visitorFilter, UsernamePasswordAuthenticationFilter::class.java)
+            .cors { it.configurationSource(corsConfigurationSource()) }
+            .addFilterAfter(visitorFilter, UsernamePasswordAuthenticationFilter::class.java)
 
         return http.build()
     }
@@ -41,7 +41,7 @@ class SecurityConfig(
         val corsConfiguration = CorsConfiguration().apply {
             allowedOrigins = allowedOriginList
             allowedHeaders = listOf("*")
-            allowedMethods = listOf("GET", "POST", "DELETE", "PUT", "PATCH")
+            allowedMethods = listOf("GET", "POST", "DELETE", "PUT", "PATCH", "OPTIONS")
             allowCredentials = true
         }
 

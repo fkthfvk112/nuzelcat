@@ -77,4 +77,6 @@ enum class ErrorCode(val status: Int, val code: String, val message: String) {
     // Image
     IMAGE_UPLOAD_FAIL(500, "IM001", "이미지 업로드 실패"),
 
+    // like
+    TODAY_LIKE_DONE(409, "LIKE001", "오늘 이미 이 게시글에 좋아요를 눌렀어요."),
 }
