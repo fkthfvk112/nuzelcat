@@ -52,6 +52,17 @@ class VisitorIdentificationFilter(
 
             val remoteIp = extractClientIp(req)
 
+            if (isIgnoredBot(ua)) {
+                return VisitorEntity(
+                    remoteIp = remoteIp,
+                    userAgent = "bot_user",
+                    acceptLanguage = lang,
+                    tzOffsetMinutes = tz,
+                    referrer = ref,
+                    lastSeenAt = LocalDateTime.now()
+                )
+            }
+
             // 1) 쿠키로 찾기
             var visitorEntity = cookieVisitorId?.let { visitorRepository.findById(it).orElse(null) }
 
@@ -161,5 +172,19 @@ class VisitorIdentificationFilter(
             req.getHeader(header)?.split(",")?.firstOrNull()?.trim()
         }
         return h ?: req.remoteAddr
+    }
+
+    private fun isIgnoredBot(ua: String?): Boolean {
+        if (ua == null) return false
+        val lower = ua.lowercase()
+        return listOf(
+            "vercel-favicon",
+            "vercel-screenshot",
+            "uptime",
+            "monitor",
+            "bot",
+            "crawler",
+            "spider"
+        ).any { lower.contains(it) }
     }
 }
