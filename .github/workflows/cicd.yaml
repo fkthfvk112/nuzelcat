@@ -60,6 +60,7 @@ jobs:
               -e CN_CLOUDNAME=${{ secrets.CN_CLOUDNAME }} \
               -e CN_API_KEY=${{ secrets.CN_API_KEY }} \
               -e CN_API_SECRET=${{ secrets.CN_API_SECRET }} \
+              -e SERVER_ALLOWED_URL_CAT_CSV=${{ secrets.SERVER_ALLOWED_URL_CAT_CSV }} \
               -v /home/ubuntu/web/logs/cat/live/:${{ secrets.LOG_PATH }} \
               --network rdb_network \
                 ghcr.io/fkthfvk112/nuzelcat:latest
