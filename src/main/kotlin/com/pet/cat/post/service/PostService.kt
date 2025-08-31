@@ -33,6 +33,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.server.ResponseStatusException
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 
@@ -194,8 +195,11 @@ class PostService(
             .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "Visitor not found") }
 
         // 오늘 이미 조회한 기록이 있는지 확인
-        val alreadyViewedToday = postViewRepository.countTodayView(postId, visitorEntity.id!!)
-        if (alreadyViewedToday == 0L) {
+        val todayStart = LocalDate.now().atStartOfDay()
+        val tomorrowStart = todayStart.plusDays(1)
+
+        val count = postViewRepository.countTodayView(postId, visitorEntity.id!!, todayStart, tomorrowStart)
+        if (count == 0L) {
             postViewRepository.save(
                 PostViewEntity(
                     post = post,
