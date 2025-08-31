@@ -6,7 +6,7 @@ data class ImageCardDTO(
     val imgCnt: Long,
     val createdAt: LocalDateTime?,
     val title: String?,
-    val catName: String,
+    val catName: String?,
     val tags: List<String>,
     val likeCnt: Long,
     val viewCnt: Long

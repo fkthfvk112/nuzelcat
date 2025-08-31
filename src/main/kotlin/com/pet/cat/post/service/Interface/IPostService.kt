@@ -17,11 +17,15 @@ interface IPostService {
     fun getImageCardList(
         title: String?,
         catName: String?,
-        tag: String?,
+        tags: List<String>?,
         sortDir: String,
+        exceptPostId:String?,
+        fromYMD:String?,
+        toYMD:String?,
         pageable: Pageable
     ): Page<ImageCardDTO>
 
     fun addViewCnt(postId:Long, visitor:CurrentVisitorDto): CommonResult<CRUDStateEnum, Long?>
     fun addLikeCnt(postId: Long, visitor: CurrentVisitorDto): CommonResult<CRUDStateEnum, Long?>
+    fun deletePost(postId:Long, pw:String):CommonResult<CRUDStateEnum, Unit>
 }

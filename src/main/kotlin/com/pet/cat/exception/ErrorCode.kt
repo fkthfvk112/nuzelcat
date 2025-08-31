@@ -70,7 +70,14 @@ enum class ErrorCode(val status: Int, val code: String, val message: String) {
 
     EXCEED_CREATE_REVIEW_LIMIT_1_MIN(400, "B002", "리뷰를 너무 자주 작성하실 수 없습니다."),
 
-    DELETED_BOARD(400, "B003", "삭제된 게시글입니다."),
+    DELETED_POST(400, "B003", "삭제된 게시글입니다."),
+
+    POST_PW_INCORRECT(400, "B004", "유효하지 않은 비밀번호입니다."),
+
+    NOT_EXIST_POST(400, "B005", "존재하지 않는 게시물입니다."),
+
+    NOT_DELETABLE_POST(400, "B006", "삭제할 수 없는 게시물입니다."),
+
 
     INVALID_AUTHCODE(400, "AU001", "유효하지 않은 인증정보입니다."),
 
@@ -79,4 +86,7 @@ enum class ErrorCode(val status: Int, val code: String, val message: String) {
 
     // like
     TODAY_LIKE_DONE(409, "LIKE001", "오늘 이미 이 게시글에 좋아요를 눌렀어요."),
+
+    // 제한
+    TODAY_POST_LIMIT(409, "LM001", "오늘 더 이상 게시글을 작성 할 수 없어요.")
 }

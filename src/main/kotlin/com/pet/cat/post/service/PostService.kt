@@ -9,16 +9,21 @@ import com.pet.cat.post.dto.PostCreateRequest
 import com.pet.cat.post.dto.PostDetailDto
 import com.pet.cat.post.entity.PostEntity
 import com.pet.cat.post.entity.PostLikeEntity
+import com.pet.cat.post.entity.PostTagEntity
 import com.pet.cat.post.entity.PostViewEntity
 import com.pet.cat.post.repository.PostLikeRepository
 import com.pet.cat.post.repository.PostRepository
+import com.pet.cat.post.repository.PostTagRepository
 import com.pet.cat.post.repository.PostViewRepository
 import com.pet.cat.post.service.Interface.IPostService
 import com.pet.cat.utils.dto.CRUDStateEnum
 import com.pet.cat.utils.dto.CommonResult
 import com.pet.cat.visitor.dto.CurrentVisitorDto
 import com.pet.cat.visitor.entity.VisitorEntity
+import com.pet.cat.visitor.enums.ActionEnum
 import com.pet.cat.visitor.repository.VisitorRepository
+import com.pet.cat.visitor.service.DailyActionService
+import com.pet.cat.visitor.service.Interface.IDailyActionService
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -28,6 +33,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.server.ResponseStatusException
+import java.time.LocalDateTime
 
 
 @Service
@@ -36,12 +42,20 @@ class PostService(
     private val postRepository: PostRepository,
     private val visitorRepository: VisitorRepository,
     private val postViewRepository: PostViewRepository,
-    private val postLikeRepository: PostLikeRepository
+    private val postLikeRepository: PostLikeRepository,
+    private val dailyActionService: IDailyActionService,
+    private val postTagRepository: PostTagRepository
 ) : IPostService {
     override fun createPost(
         request: PostCreateRequest,
         visitor: CurrentVisitorDto?
     ): CommonResult<CRUDStateEnum, Long?> {
+
+        // 하루 최대 게시글 생성 양 제한(사진 API 과도한 요청 방지)
+        val todayPostCnt = dailyActionService.getTodayActionCnt(ActionEnum.POST_CREATE)
+        if (todayPostCnt >= 500) {
+            throw BusinessException(ErrorCode.TODAY_POST_LIMIT)
+        }
 
         val post = PostEntity(
             poster = visitor?.id?.let { VisitorEntity(id = it) },
@@ -50,10 +64,10 @@ class PostService(
             authorNickname = request.authorNickname,
             description = request.description,
             locationRegion = request.locationRegion,
-            pw = request.pw
+            pw = request.authorPassword
         )
 
-        // ✅ 병렬 업로드 (ForkJoinPool commonPool 사용)
+        // 병렬 업로드 (ForkJoinPool commonPool 사용)
         val uploadedUrls = request.base64ImgList
             .parallelStream()
             .map { base64 -> imageUploader.uploadImg(base64) }
@@ -72,6 +86,14 @@ class PostService(
         }
 
         val savedPost = postRepository.save(post)
+
+        // 태그 저장
+        request.tags?.forEach {
+            postTagRepository.save(PostTagEntity(
+                post = savedPost,
+                tag = it
+            ))
+        }
 
         return CommonResult(
             data = savedPost.id,
@@ -114,25 +136,51 @@ class PostService(
     override fun getImageCardList(
         title: String?,
         catName: String?,
-        tag: String?,
+        tags: List<String>?,
         sortDir: String,
+        exceptPostId: String?,
+        fromYMD:String?,
+        toYMD:String?,
         pageable: Pageable
     ): Page<ImageCardDTO> {
-        return postRepository.findImageCards(title, catName, tag, sortDir, pageable)
-            .map { row ->
-                ImageCardDTO(
-                    postId      = row.getPostId(),
-                    repreImgUrl = row.getRepreImgUrl() ?: "",
-                    imgCnt      = row.getImgCnt(),
-                    createdAt   = row.getCreatedAt(),
-                    title       = row.getTitle(),
-                    catName     = row.getCatName(),
-                    tags        = splitConcatToList(row.getTagsConcat()),
-                    likeCnt     = row.getLikeCnt(),
-                    viewCnt     = row.getViewCnt()
-                )
-            }
+
+        // 1) 공백/빈 문자열은 null 취급
+        val cleanTitle   = title?.trim()?.takeIf { it.isNotEmpty() }
+        val cleanCatName = catName?.trim()?.takeIf { it.isNotEmpty() }
+
+        // 2) 태그 필터 스위치 + IN () 구문 오류 방지용 더미
+        val applyTag = if (!tags.isNullOrEmpty()) 1 else 0
+        val safeTags = if (applyTag == 1) tags!! else listOf("__DUMMY__")
+
+        // 3) sortDir 방어 (허용: asc | desc | score_asc | score_desc)
+        val allowedSort = setOf("asc", "desc", "score_asc", "score_desc")
+        val cleanSortDir = if (sortDir in allowedSort) sortDir else "desc"
+
+        return postRepository.findImageCards(
+            title     = cleanTitle,
+            catName   = cleanCatName,
+            tags      = safeTags,
+            applyTag  = applyTag,
+            sortDir   = cleanSortDir,
+            fromYMD   = fromYMD,
+            toYMD     = toYMD,
+            exceptId  = exceptPostId,
+            pageable  = pageable
+        ).map { row ->
+            ImageCardDTO(
+                postId      = row.getPostId(),
+                repreImgUrl = row.getRepreImgUrl() ?: "",
+                imgCnt      = row.getImgCnt(),
+                createdAt   = row.getCreatedAt(),
+                title       = row.getTitle(),
+                catName     = row.getCatName(),
+                tags        = splitConcatToList(row.getTagsConcat()),
+                likeCnt     = row.getLikeCnt(),
+                viewCnt     = row.getViewCnt()
+            )
+        }
     }
+
 
     @Transactional
     override fun addViewCnt(
@@ -196,6 +244,40 @@ class PostService(
             data    = likeCnt,
             message = "좋아요 성공",
             state   = CRUDStateEnum.UPDATE_SUCCESS
+        )
+    }
+
+    @Transactional
+    override fun deletePost(postId: Long, pw: String): CommonResult<CRUDStateEnum, Unit> {
+        // 1. 게시글 조회
+        val post = postRepository.findById(postId)
+            .orElseThrow { throw BusinessException(ErrorCode.NOT_EXIST_POST) }
+
+        // 2. 비밀번호가 세팅되지 않는 경우 삭제 불가
+        if(post.pw.isNullOrBlank()){
+            throw BusinessException(ErrorCode.NOT_DELETABLE_POST)
+        }
+
+        // 3. 이미 삭제된 경우
+        if (post.isDel) {
+            throw BusinessException(ErrorCode.DELETED_POST)
+        }
+
+        // 4. 비밀번호 검증
+        if (post.pw.isNullOrBlank() || post.pw != pw) {
+            throw BusinessException(ErrorCode.POST_PW_INCORRECT)
+        }
+
+        // 5. 삭제 처리 (soft delete)
+        post.isDel = true
+        post.deletedAt = LocalDateTime.now()
+        postRepository.save(post)
+
+        // 6. 성공 응답
+        return CommonResult(
+            data = Unit,
+            message = "게시글이 삭제되었습니다.",
+            state = CRUDStateEnum.DELETE_SUCCESS
         )
     }
 }

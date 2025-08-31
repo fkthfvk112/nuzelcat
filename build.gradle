@@ -30,6 +30,7 @@ dependencies {
 	implementation 'com.cloudinary:cloudinary-taglib:1.36.0'
 	implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1'
 	implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:1.8.1'
+	implementation 'org.springframework.boot:spring-boot-starter-mail'
 
 	runtimeOnly 'com.mysql:mysql-connector-j'
 

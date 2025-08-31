@@ -1,5 +1,7 @@
 package com.pet.cat.exception
 
+import com.pet.cat.message.dto.EmailRequest
+import com.pet.cat.message.service.EmailSender
 import jakarta.servlet.http.HttpServletRequest
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -12,7 +14,7 @@ import java.io.IOException
 
 @ControllerAdvice
 class GlobalExceptionHandler(
-    //private val emailSender: EmailSender
+    private val emailSender: EmailSender
 ) {
 
     private val log = LoggerFactory.getLogger(GlobalExceptionHandler::class.java)
@@ -78,16 +80,16 @@ class GlobalExceptionHandler(
             append("<div style='margin:0.2rem; padding:0.2rem; margin-top:1rem; background-color:#e1e1e1; word-wrap: break-word;'>$e</div>")
         }
 
-//        val serverHost = request.serverName
-//        if (!serverHost.equals("localhost", ignoreCase = true)) {
-//            emailSender.sendHtmlMessageAsync(
-//                EmailDTO(
-//                    emailTitle = "에러 보고",
-//                    emailAddress = "wjdwl545@naver.com",
-//                    emailContent = message
-//                )
-//            )
-//        }
+        val serverHost = request.serverName
+        if (!serverHost.equals("localhost", ignoreCase = true)) {
+            emailSender.sendHtmlMessageAsync(
+                EmailRequest(
+                    emailTitle = "에러 보고",
+                    emailAddress = "wjdwl545@naver.com",
+                    emailContent = message
+                )
+            )
+        }
 
         val response = ErrorResponse(
             status = errorCode.status,

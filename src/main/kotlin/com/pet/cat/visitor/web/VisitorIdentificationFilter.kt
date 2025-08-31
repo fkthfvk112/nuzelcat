@@ -19,7 +19,6 @@ import java.time.format.DateTimeFormatter
 class VisitorIdentificationFilter(
     private val visitorRepository: VisitorRepository,
     private val siteAccessRepository: SiteAccessRepository,
-    @Value("\${app.fingerprint.secret}") private val secret: String,
     @Value("\${app.visitor.cookie-name:visitor_id}") private val visitorCookieName: String = "visitor_id"
 ) : OncePerRequestFilter() {
 
