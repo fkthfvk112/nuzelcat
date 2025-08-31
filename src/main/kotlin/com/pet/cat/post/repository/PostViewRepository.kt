@@ -11,14 +11,18 @@ import org.springframework.stereotype.Repository
 interface PostViewRepository: JpaRepository<PostViewEntity, Long> {
     @Query(
         """
-        SELECT COUNT(pv) > 0 
-        FROM PostViewEntity pv 
-        WHERE pv.post.id = :postId 
-          AND pv.visitor.id = :visitorId 
-          AND DATE(pv.createdAt) = CURRENT_DATE
-        """
+    SELECT COUNT(pv) 
+    FROM PostViewEntity pv
+    WHERE pv.post.id = :postId
+      AND pv.visitor.id = :visitorId
+      AND pv.createdAt >= CURRENT_DATE
+      AND pv.createdAt < CURRENT_DATE + 1
+    """
     )
-    fun existsTodayView(@Param("postId") postId: Long, @Param("visitorId") visitorId: String): Boolean
+    fun countTodayView(
+        @Param("postId") postId: Long,
+        @Param("visitorId") visitorId: String
+    ): Long
 
     fun countByPostId(postId: Long): Long
 }

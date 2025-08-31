@@ -194,8 +194,8 @@ class PostService(
             .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "Visitor not found") }
 
         // 오늘 이미 조회한 기록이 있는지 확인
-        val alreadyViewedToday = postViewRepository.existsTodayView(postId, visitorEntity.id!!)
-        if (!alreadyViewedToday) {
+        val alreadyViewedToday = postViewRepository.countTodayView(postId, visitorEntity.id!!)
+        if (alreadyViewedToday == 0L) {
             postViewRepository.save(
                 PostViewEntity(
                     post = post,
