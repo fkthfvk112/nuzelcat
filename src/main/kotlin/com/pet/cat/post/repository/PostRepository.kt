@@ -107,11 +107,17 @@ interface PostRepository: JpaRepository<PostEntity, Long> {
       AND (:exceptId IS NULL OR p.post_id <> :exceptId)
     GROUP BY p.post_id
     ORDER BY 
-      CASE WHEN :sortDir = 'asc'       THEN p.created_at    END ASC,
-      CASE WHEN :sortDir = 'desc'      THEN p.created_at    END DESC,
-      CASE WHEN :sortDir = 'score_asc' THEN p.score_popular END ASC,
-      CASE WHEN :sortDir = 'score_desc'THEN p.score_popular END DESC,
-      p.post_id DESC
+        CASE :sortDir 
+            WHEN 'desc'       THEN p.created_at
+            WHEN 'score_desc' THEN p.score_popular
+            ELSE 0 
+        END DESC,
+        CASE :sortDir
+            WHEN 'asc'        THEN p.created_at 
+            WHEN 'score_asc'  THEN p.score_popular
+            ELSE 0
+        END ASC
+      ,p.post_id DESC
     """,
         countQuery = """
     SELECT COUNT(*)
