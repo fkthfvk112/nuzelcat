@@ -14,7 +14,7 @@ class PostScheduler(
     ) {
     private val log = LoggerFactory.getLogger(PostScheduler::class.java)
 
-    @Scheduled(cron = "0 59 21 * * *", zone = "Asia/Seoul")
+    @Scheduled(cron = "0 0 3,15 * * *", zone = "Asia/Seoul")
     @Transactional
     fun recompute() {
         log.info("[PostScheduler]-recompute start")
