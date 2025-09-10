@@ -6,9 +6,13 @@ import jakarta.servlet.http.HttpServletRequest
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.web.HttpMediaTypeNotSupportedException
 import org.springframework.web.bind.MethodArgumentNotValidException
+import org.springframework.web.bind.MissingPathVariableException
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException
+import org.springframework.web.servlet.NoHandlerFoundException
 import java.io.BufferedReader
 import java.io.IOException
 
@@ -50,6 +54,54 @@ class GlobalExceptionHandler(
         )
 
         return ResponseEntity(response, HttpStatus.INTERNAL_SERVER_ERROR)
+    }
+
+    /** 잘못된 URL 요청 (404) */
+    @ExceptionHandler(NoHandlerFoundException::class)
+    protected fun handleNoHandlerFoundException(e: NoHandlerFoundException): ResponseEntity<ErrorResponse> {
+        val response = ErrorResponse(
+            status = HttpStatus.NOT_FOUND.value(),
+            code = "NOT_FOUND",
+            error = "Resource Not Found",
+            message = "요청한 리소스를 찾을 수 없습니다."
+        )
+        return ResponseEntity(response, HttpStatus.NOT_FOUND)
+    }
+
+    /** PathVariable 누락 */
+    @ExceptionHandler(MissingPathVariableException::class)
+    protected fun handleMissingPathVariableException(e: MissingPathVariableException): ResponseEntity<ErrorResponse> {
+        val response = ErrorResponse(
+            status = HttpStatus.BAD_REQUEST.value(),
+            code = "MISSING_PATH_VARIABLE",
+            error = "Bad Request",
+            message = "경로 변수 값이 누락되었습니다."
+        )
+        return ResponseEntity(response, HttpStatus.BAD_REQUEST)
+    }
+
+    /** 지원하지 않는 Content-Type */
+    @ExceptionHandler(HttpMediaTypeNotSupportedException::class)
+    protected fun handleHttpMediaTypeNotSupportedException(e: HttpMediaTypeNotSupportedException): ResponseEntity<ErrorResponse> {
+        val response = ErrorResponse(
+            status = HttpStatus.UNSUPPORTED_MEDIA_TYPE.value(),
+            code = "UNSUPPORTED_MEDIA_TYPE",
+            error = "Unsupported Media Type",
+            message = "지원하지 않는 요청 형식입니다."
+        )
+        return ResponseEntity(response, HttpStatus.UNSUPPORTED_MEDIA_TYPE)
+    }
+
+    /** 잘못된 파라미터 타입 */
+    @ExceptionHandler(MethodArgumentTypeMismatchException::class)
+    protected fun handleMethodArgumentTypeMismatchException(e: MethodArgumentTypeMismatchException): ResponseEntity<ErrorResponse> {
+        val response = ErrorResponse(
+            status = HttpStatus.BAD_REQUEST.value(),
+            code = "TYPE_MISMATCH",
+            error = "Bad Request",
+            message = "잘못된 파라미터 타입입니다."
+        )
+        return ResponseEntity(response, HttpStatus.BAD_REQUEST)
     }
 
     @ExceptionHandler(Exception::class)
