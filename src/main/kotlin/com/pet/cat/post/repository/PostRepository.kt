@@ -199,4 +199,24 @@ interface PostRepository: JpaRepository<PostEntity, Long> {
         @Param("maxAgeDays") maxAgeDays: Int = 150,
         @Param("minScore") minScore: Double = 0.05
     ): Int
+
+    @Query(
+        value = """
+        SELECT p.post_id
+        FROM post p
+        WHERE p.is_del = 0
+        """,
+        nativeQuery = true
+    )
+    fun getNotDeletedPostIdList(): List<Long>
+
+    @Query(
+        value = """
+        SELECT COUNT(*)
+        FROM post p
+        WHERE p.is_del = 0
+    """,
+        nativeQuery = true
+    )
+    fun countNotDeletedPosts(): Long
 }

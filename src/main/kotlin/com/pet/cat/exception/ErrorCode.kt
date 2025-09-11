@@ -88,5 +88,7 @@ enum class ErrorCode(val status: Int, val code: String, val message: String) {
     TODAY_LIKE_DONE(409, "LIKE001", "오늘 이미 이 게시글에 좋아요를 눌렀어요."),
 
     // 제한
-    TODAY_POST_LIMIT(409, "LM001", "오늘 더 이상 게시글을 작성 할 수 없어요.")
+    TODAY_POST_LIMIT(409, "LM001", "오늘 더 이상 게시글을 작성 할 수 없어요."),
+
+    SITEMAP_FILE_NOT_FOUND(500, "SM001", "사이트맵 파일을 찾을 수 없습니다"),
 }
