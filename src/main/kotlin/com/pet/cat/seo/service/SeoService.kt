@@ -15,7 +15,7 @@ import java.nio.file.Files
 class SeoService(
     val postRepository:PostRepository
 ):ISeoService {
-    val frontUrl = "https://www.nuzelpet.com/"
+    val frontUrl = "https://www.nuzelpet.com"
     @Throws(IOException::class)
     override fun getSiteMap(): String? {
         val tempDir = File(System.getProperty("java.io.tmpdir"))
