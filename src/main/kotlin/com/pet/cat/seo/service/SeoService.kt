@@ -18,7 +18,7 @@ class SeoService(
     val frontUrl = "https://www.nuzelpet.com/"
     @Throws(IOException::class)
     override fun getSiteMap(): String? {
-        val tempDir = File(System.getProperty("java.io.tmpdir_cat"))
+        val tempDir = File(System.getProperty("java.io.tmpdir"))
 
         // sitemap 생성
         val wsg = WebSitemapGenerator(frontUrl, tempDir)
