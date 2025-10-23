@@ -54,6 +54,7 @@ class PostController(
         }
     }
 
+    //(허용: asc | desc | score_asc | score_desc)
     @GetMapping("/list")
     fun getPostList(
         @RequestParam(required = false) title: String?,

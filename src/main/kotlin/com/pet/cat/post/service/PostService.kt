@@ -22,11 +22,8 @@ import com.pet.cat.visitor.dto.CurrentVisitorDto
 import com.pet.cat.visitor.entity.VisitorEntity
 import com.pet.cat.visitor.enums.ActionEnum
 import com.pet.cat.visitor.repository.VisitorRepository
-import com.pet.cat.visitor.service.DailyActionService
 import com.pet.cat.visitor.service.Interface.IDailyActionService
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
+import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Page
 import org.springframework.http.HttpStatus
@@ -37,6 +34,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 
+
 @Service
 class PostService(
     private val imageUploader: ImageUploader,
@@ -45,8 +43,10 @@ class PostService(
     private val postViewRepository: PostViewRepository,
     private val postLikeRepository: PostLikeRepository,
     private val dailyActionService: IDailyActionService,
-    private val postTagRepository: PostTagRepository
+    private val postTagRepository: PostTagRepository,
 ) : IPostService {
+    private val log = LoggerFactory.getLogger(this::class.java)
+
     override fun createPost(
         request: PostCreateRequest,
         visitor: CurrentVisitorDto?
@@ -226,12 +226,11 @@ class PostService(
         val visitorEntity = visitorRepository.findById(visitor.id!!)
             .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "Visitor not found") }
 
-        addViewCnt(post.id!!, visitor)
-
         // 오늘 이미 좋아요 했는지 확인
         val alreadyLikedToday = postLikeRepository.existsTodayLike(postId, visitorEntity.id!!)
         if(alreadyLikedToday){
-            throw BusinessException(ErrorCode.TODAY_LIKE_DONE);
+            log.error("[addLikeCnt] - aleady like! visitor id : {}, post id : {}", visitorEntity.id, postId)
+            throw BusinessException(ErrorCode.TODAY_LIKE_DONE)
         }
 
         postLikeRepository.save(

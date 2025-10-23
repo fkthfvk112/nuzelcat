@@ -152,7 +152,6 @@ interface PostRepository: JpaRepository<PostEntity, Long> {
         pageable: Pageable
     ): Page<ImageCardRow>
 
-
     @Modifying
     @Transactional
     @Query(
