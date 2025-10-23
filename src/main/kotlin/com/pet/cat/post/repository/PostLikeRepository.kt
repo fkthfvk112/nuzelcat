@@ -6,25 +6,15 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
+import java.time.LocalDateTime
 
 @Repository
 interface PostLikeRepository: JpaRepository<PostLikeEntity, Long> {
-    @Query(
-        value = """
-            SELECT EXISTS (
-                SELECT 1 
-                FROM post_like pl
-                WHERE pl.post_id = :postId
-                  AND pl.visitor_id = :visitorId
-                  AND DATE(pl.created_at) = CURDATE()
-            )
-        """,
-        nativeQuery = true
-    )
-    fun existsTodayLike(
-        @Param("postId") postId: Long,
-        @Param("visitorId") visitorId: String
+    fun countByPostIdAndVisitorIdAndCreatedAtBetween(
+        postId: Long,
+        visitorId: String,
+        start: LocalDateTime,
+        end: LocalDateTime
     ): Long
-
     fun countByPostId(postId: Long): Long
 }

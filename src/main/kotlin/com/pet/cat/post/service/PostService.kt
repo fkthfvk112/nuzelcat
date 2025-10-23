@@ -32,7 +32,9 @@ import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.server.ResponseStatusException
 import java.time.LocalDate
 import java.time.LocalDateTime
-
+import java.time.ZoneId
+import java.time.ZonedDateTime
+import java.time.temporal.ChronoUnit
 
 
 @Service
@@ -229,8 +231,16 @@ class PostService(
             .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "Visitor not found") }
 
         // 오늘 이미 좋아요 했는지 확인
-        val alreadyLikedToday = postLikeRepository.existsTodayLike(postId, visitorEntity.id!!)
-        if(alreadyLikedToday >= 1){
+        val zone = ZoneId.of("Asia/Seoul")
+        val todayStart = LocalDate.now(zone).atStartOfDay()          // 2025-10-24T00:00
+        val tomorrowStart = todayStart.plusDays(1)                  // 2025-10-25T00:00
+
+        // 오늘 이미 좋아요 했는지 확인
+        val alreadyLikedToday = postLikeRepository.countByPostIdAndVisitorIdAndCreatedAtBetween(
+            postId, visitorEntity.id!!, todayStart, tomorrowStart
+        ) > 0
+
+        if(alreadyLikedToday){
             log.error("[addLikeCnt] - aleady like! visitor id : {}, post id : {}", visitorEntity.id, postId)
             throw BusinessException(ErrorCode.TODAY_LIKE_DONE)
         }
