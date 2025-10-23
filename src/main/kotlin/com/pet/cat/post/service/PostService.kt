@@ -228,7 +228,7 @@ class PostService(
 
         // 오늘 이미 좋아요 했는지 확인
         val alreadyLikedToday = postLikeRepository.existsTodayLike(postId, visitorEntity.id!!)
-        if(alreadyLikedToday){
+        if(alreadyLikedToday >= 1){
             log.error("[addLikeCnt] - aleady like! visitor id : {}, post id : {}", visitorEntity.id, postId)
             throw BusinessException(ErrorCode.TODAY_LIKE_DONE)
         }

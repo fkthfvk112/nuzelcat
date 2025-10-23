@@ -10,18 +10,21 @@ import org.springframework.stereotype.Repository
 @Repository
 interface PostLikeRepository: JpaRepository<PostLikeEntity, Long> {
     @Query(
-        """
-        SELECT COUNT(pl) > 0 
-        FROM PostLikeEntity pl 
-        WHERE pl.post.id = :postId 
-          AND pl.visitor.id = :visitorId 
-          AND DATE(pl.createdAt) = CURRENT_DATE
-        """
+        value = """
+            SELECT EXISTS (
+                SELECT 1 
+                FROM post_like pl
+                WHERE pl.post_id = :postId
+                  AND pl.visitor_id = :visitorId
+                  AND DATE(pl.created_at) = CURDATE()
+            )
+        """,
+        nativeQuery = true
     )
     fun existsTodayLike(
         @Param("postId") postId: Long,
         @Param("visitorId") visitorId: String
-    ): Boolean
+    ): Long
 
     fun countByPostId(postId: Long): Long
 }
