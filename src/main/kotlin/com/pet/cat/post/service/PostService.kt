@@ -218,6 +218,8 @@ class PostService(
         )
     }
 
+
+    @Synchronized
     @Transactional
     override fun addLikeCnt(postId: Long, visitor: CurrentVisitorDto): CommonResult<CRUDStateEnum, Long?> {
         val post = postRepository.findById(postId)
