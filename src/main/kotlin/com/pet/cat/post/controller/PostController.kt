@@ -59,6 +59,7 @@ class PostController(
     fun getPostList(
         @RequestParam(required = false) title: String?,
         @RequestParam(required = false) catName: String?,
+        @RequestParam(required = false) author: String?,
         @RequestParam(required = false) tags: List<String>?,
         @RequestParam(defaultValue = "score_desc") sortDir: String,
         @RequestParam(required = false) exceptPostId:String?,
@@ -68,7 +69,7 @@ class PostController(
     ): ResponseEntity<Page<ImageCardDTO>> {
         return LoggingAdvice.infolog("controller-getPostList"){
             ResponseEntity.ok(
-                postService.getImageCardList(title, catName, tags, sortDir, exceptPostId, fromYMD, toYMD, pageable)
+                postService.getImageCardList(title, catName, author, tags, sortDir, exceptPostId, fromYMD, toYMD, pageable)
             )
         }
     }

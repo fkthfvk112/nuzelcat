@@ -17,6 +17,7 @@ interface IPostService {
     fun getImageCardList(
         title: String?,
         catName: String?,
+        author: String?,
         tags: List<String>?,
         sortDir: String,
         exceptPostId:String?,

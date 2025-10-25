@@ -139,6 +139,7 @@ class PostService(
     override fun getImageCardList(
         title: String?,
         catName: String?,
+        author: String?,
         tags: List<String>?,
         sortDir: String,
         exceptPostId: String?,
@@ -150,7 +151,7 @@ class PostService(
         // 1) 공백/빈 문자열은 null 취급
         val cleanTitle   = title?.trim()?.takeIf { it.isNotEmpty() }
         val cleanCatName = catName?.trim()?.takeIf { it.isNotEmpty() }
-
+        val cleanAuthor  = author?.trim()?.takeIf { it.isNotEmpty() }
         // 2) 태그 필터 스위치 + IN () 구문 오류 방지용 더미
         val applyTag = if (!tags.isNullOrEmpty()) 1 else 0
         val safeTags = if (applyTag == 1) tags!! else listOf("__DUMMY__")
@@ -162,6 +163,7 @@ class PostService(
         return postRepository.findImageCards(
             title     = cleanTitle,
             catName   = cleanCatName,
+            author    = cleanAuthor,
             tags      = safeTags,
             applyTag  = applyTag,
             sortDir   = cleanSortDir,

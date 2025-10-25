@@ -93,6 +93,7 @@ interface PostRepository: JpaRepository<PostEntity, Long> {
     WHERE p.is_del = 0
       AND (:title   IS NULL OR p.title    LIKE %:title%)
       AND (:catName IS NULL OR p.cat_name LIKE %:catName%)
+      AND (:author IS NULL OR p.author_nickname LIKE %:author%)
       AND (
             :applyTag = 0
             OR EXISTS ( 
@@ -125,6 +126,7 @@ interface PostRepository: JpaRepository<PostEntity, Long> {
     WHERE p.is_del = 0
       AND (:title   IS NULL OR p.title    LIKE %:title%)
       AND (:catName IS NULL OR p.cat_name LIKE %:catName%)
+      AND (:author IS NULL OR p.author_nickname LIKE %:author%)
       AND (
             :applyTag = 0
             OR EXISTS (
@@ -143,6 +145,7 @@ interface PostRepository: JpaRepository<PostEntity, Long> {
     fun findImageCards(
         @Param("title") title: String?,
         @Param("catName") catName: String?,
+        @Param("author") author: String?,
         @Param("tags") tags: List<String>?,      // 적용 시만 사용
         @Param("applyTag") applyTag: Int,        // 0 or 1
         @Param("sortDir") sortDir: String,
